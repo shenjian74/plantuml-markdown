@@ -1,5 +1,5 @@
 # plantuml-markdown
-parse plantuml tags in markdown (NOT yet complete!)
+parse plantuml tags in markdown (**NOT yet complete!**)
 
 tags: plantuml markdown
 
