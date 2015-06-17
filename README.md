@@ -1,20 +1,17 @@
-# 在此处输入标题
-
-标签（空格分隔）： 未分类
-
----
-
 # plantuml-markdown
 parse plantuml tags in markdown (NOT yet complete!)
 
-# Example
+tags: plantuml markdown
+
+## Example
 
 Markdown
 
-    # Title1
-	## Title2
+    ### Title3
+	#### Title4
 	
 	line1
+	
 	line2
 	
 	```uml
@@ -29,16 +26,17 @@ Markdown
 
 Show as:
 
-# Title1
+### Title3
 
-## Title2
+#### Title4
 
 line1
+
 line2
 
 ![](http://www.plantuml.com:80/plantuml/png/Syp9J4vLqBLJSCfFib9mB2t9ICqhoKnEBCdCprC8IYqiJIqkuGBAAUW2rJY256DHLLoGdrUSoiNbY6fONZvGNP528dP38OfjT7KXgXDngOOO3W00)
 
-# Install	
+## Install	
 1. Download and Install [plantuml](http://www.plantuml.com/)
 2. Config the path of [plantuml.jar](http://sourceforge.net/projects/plantuml/files/plantuml.jar/download) in "preprocess.py"
 3. Finally, "python preprocess.py"
