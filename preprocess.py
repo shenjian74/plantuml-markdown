@@ -1,11 +1,11 @@
 # coding=UTF-8
 
-plantuml_jar_file = 'C:\\PortableApps\\plantuml\\plantuml.jar'
+plantuml_jar_file = 'plantuml.jar'
 plantuml_jar_parameters = ''
-pandoc_exe_file = 'C:\\Users\\10016632\\AppData\\Local\\Pandoc\\pandoc.exe'
+pandoc_exe_file = 'pandoc'
 pandoc_html_parameters = '-S --from=markdown+pipe_tables+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
-pandoc_reference_docx = 'D:\\git@github\\own\\plantuml-markdown\\reference\\reference.docx'
+pandoc_reference_docx = ''
 delete_temp_file = True
 
 import locale
@@ -22,13 +22,24 @@ logging.basicConfig(format='[%(filename)s:%(lineno)d] : %(asctime)s : %(levelnam
                     level=logging.INFO)
 
 
+def print_popen_result(result):
+    no_error = True
+    for line in result:
+        logging.error(line)
+        no_error = False
+    if no_error:
+        logging.info('Success.')
+
+
 def convert2png(content):
+    global plantuml_jar_file
+
     fp, tmpfilename = tempfile.mkstemp()
     os.write(fp, content)
     os.close(fp)
-    cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename)
+    cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s 2>&1' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename)
     logging.info('$ %s' % cmdline)
-    os.popen(cmdline)
+    print_popen_result(os.popen(cmdline))
     if delete_temp_file:
         os.remove(tmpfilename)
     return tmpfilename + ".png"
@@ -57,21 +68,43 @@ def chs(string):
     return ret_string
 
 
+def change_file_ext(origin, new_ext):
+    if len(os.path.basename(origin).split('.')) == 1:
+        return origin+'.'+new_ext
+
+    parts = origin.split('.')
+    count = len(parts)
+    dest_filename = ''
+    for i in xrange(count-1):
+        dest_filename += parts[i] + '.'
+    dest_filename += new_ext
+    return dest_filename
+
+
 def main(args=None):
+    global plantuml_jar_file
 
     parser = argparse.ArgumentParser(description='Preprocessing plantuml in markdown file.')
     parser.add_argument("markdown_file", metavar='file', type=file)
+    parser.add_argument("--reference-docx", type=file, help="the reference docx file used by pandoc", required=False)
+    parser.add_argument("--plantuml-jar", type=file, help="the plantuml jar file", required=False)
     args = parser.parse_args()
 
     with args.markdown_file:
         file_content = args.markdown_file.read()
+    if args.reference_docx:
+        args.reference_docx.close()
+        pandoc_reference_docx = args.reference_docx.name
+    if args.plantuml_jar:
+        args.plantuml_jar.close()
+        plantuml_jar_file = args.plantuml_jar.name
 
     index = 1
     while True:
         script = re.search(pattern, file_content)
         if script is None:
             break
-        logging.info(script.group('content'))
+        logging.debug(script.group('content'))
         tmpfilename = convert2png(script.group('content'))
         file_content = re.sub(pattern, lambda s: "![](%s)" % tmpfilename, file_content, count=1)
         index += 1
@@ -80,18 +113,20 @@ def main(args=None):
     os.write(fp, file_content)
     os.close(fp)
 
-    cmdline = '%s -S %s --css="%s" -s %s -o "%s.html"' % \
+    cmdline = '%s -S %s --css="%s" -s %s -o "%s" 2>&1' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
-               tmpfilename, os.path.normpath(args.markdown_file.name))
+               tmpfilename, os.path.normpath(change_file_ext(args.markdown_file.name, 'html')))
     logging.info('$ %s' % chs(cmdline))
-    result = os.popen(cmdline)
-    logging.info(result.readlines())
-    cmdline = '%s -S %s --reference-docx="%s" -s %s -o "%s.docx"' % \
-              (pandoc_exe_file, pandoc_html_parameters, pandoc_reference_docx,
-               tmpfilename, os.path.normpath(args.markdown_file.name))
+    print_popen_result(os.popen(cmdline))
+
+    cmdline = '%s -S %s' % (pandoc_exe_file, pandoc_html_parameters)
+    if len(pandoc_reference_docx):
+        cmdline += ' --reference-docx="%s"' % pandoc_reference_docx
+    cmdline += ' -s %s -o "%s" 2>&1' % (tmpfilename,
+            os.path.normpath(change_file_ext(args.markdown_file.name, 'docx')))
     logging.info('$ %s' % chs(cmdline))
-    result = os.popen(cmdline)
-    logging.info(result.readlines())
+    print_popen_result(os.popen(cmdline))
+
     if delete_temp_file:
         os.remove(tmpfilename)
 
