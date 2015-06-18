@@ -79,10 +79,7 @@ def main(args=None):
     fp, tmpfilename = tempfile.mkstemp()
     os.write(fp, file_content)
     os.close(fp)
-    # cmdline = 'pandoc -S --from=markdown+pipe_tables+yaml_metadata_block ' \
-    #           '--reference-docx "%bat_path%zte_reference.docx" ' \
-    #           '--css="D:\git@OSC\Workspace\projects\CSS\github.css" ' \
-    #           '--table-of-contents -s %p1% -o "%%~df%%~pf%%~nf.docx'
+
     cmdline = '%s -S %s --css="%s" -s %s -o "%s.html"' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
                tmpfilename, os.path.normpath(args.markdown_file.name))
