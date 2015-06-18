@@ -14,7 +14,8 @@ plantuml_jar_file = 'C:\\PortableApps\\plantuml\\plantuml.jar'
 plantuml_jar_parameters = ''
 pandoc_exe_file = 'C:\\Users\\10016632\\AppData\\Local\\Pandoc\\pandoc.exe'
 pandoc_html_parameters = '-S --from=markdown+pipe_tables+yaml_metadata_block --table-of-contents'
-pandoc_css_file = 'http://raw.githubusercontent.com/shenjian74/plantuml-markdown/master/css/github.css'
+pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
+pandoc_reference_docx = ''
 delete_temp_file = False
 
 pattern = re.compile("```uml(?P<content>.*)```", re.DOTALL)
@@ -28,7 +29,7 @@ def convert2png(content):
     os.write(fp, content)
     os.close(fp)
     cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename)
-    print 'cmd:%s' % cmdline
+    print '$ %s' % cmdline
     os.popen(cmdline)
     if delete_temp_file:
         os.remove(tmpfilename)
@@ -83,10 +84,14 @@ def main(args=None):
     #           '--table-of-contents -s %p1% -o "%%~df%%~pf%%~nf.docx'
     cmdline = '%s -S %s --css="%s" -s %s -o "%s.html"' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
-               tmpfilename, os.path.normpath(chs(args.markdown_file.name)))
-    print cmdline
-    result = os.popen(cmdline, 'r')
-    print result.readlines()
+               tmpfilename, os.path.normpath(args.markdown_file.name))
+    print '$ %s' % cmdline
+    os.popen(cmdline)
+    cmdline = '%s -S %s --reference-docx "%s" -s %s -o "%s.docx"' % \
+              (pandoc_exe_file, pandoc_html_parameters, pandoc_reference_docx,
+               tmpfilename, os.path.normpath(args.markdown_file.name))
+    print '$ %s' % cmdline
+    os.popen(cmdline)
     if delete_temp_file:
         os.remove(tmpfilename)
 
