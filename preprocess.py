@@ -1,5 +1,13 @@
 # coding=UTF-8
 
+plantuml_jar_file = 'C:\\PortableApps\\plantuml\\plantuml.jar'
+plantuml_jar_parameters = ''
+pandoc_exe_file = 'C:\\Users\\10016632\\AppData\\Local\\Pandoc\\pandoc.exe'
+pandoc_html_parameters = '-S --from=markdown+pipe_tables+yaml_metadata_block --table-of-contents'
+pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
+pandoc_reference_docx = 'D:\\git@github\\own\\plantuml-markdown\\reference\\reference.docx'
+delete_temp_file = True
+
 import locale
 import sys
 import os
@@ -8,17 +16,7 @@ import logging
 import tempfile
 import argparse
 
-__author__ = 'Shen Jian'
-
-plantuml_jar_file = 'C:\\PortableApps\\plantuml\\plantuml.jar'
-plantuml_jar_parameters = ''
-pandoc_exe_file = 'C:\\Users\\10016632\\AppData\\Local\\Pandoc\\pandoc.exe'
-pandoc_html_parameters = '-S --from=markdown+pipe_tables+yaml_metadata_block --table-of-contents'
-pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
-pandoc_reference_docx = ''
-delete_temp_file = False
-
-pattern = re.compile("```uml(?P<content>.*)```", re.DOTALL)
+pattern = re.compile("\n```uml(?P<content>.*?)\n```", re.DOTALL)
 os_tempdir = tempfile.gettempdir()
 logging.basicConfig(format='[%(filename)s:%(lineno)d] : %(asctime)s : %(levelname)s : %(message)s',
                     level=logging.INFO)
@@ -29,11 +27,12 @@ def convert2png(content):
     os.write(fp, content)
     os.close(fp)
     cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename)
-    print '$ %s' % cmdline
+    logging.info('$ %s' % cmdline)
     os.popen(cmdline)
     if delete_temp_file:
         os.remove(tmpfilename)
     return tmpfilename + ".png"
+
 
 def chs(string):
     os_encoding = locale.getpreferredencoding()
@@ -57,6 +56,7 @@ def chs(string):
         ret_string = unicode_string.encode(default_encoding)
     return ret_string
 
+
 def main(args=None):
 
     parser = argparse.ArgumentParser(description='Preprocessing plantuml in markdown file.')
@@ -71,8 +71,9 @@ def main(args=None):
         script = re.search(pattern, file_content)
         if script is None:
             break
+        logging.info(script.group('content'))
         tmpfilename = convert2png(script.group('content'))
-        file_content = re.sub(pattern, lambda s: "![](%s)" % tmpfilename, file_content)
+        file_content = re.sub(pattern, lambda s: "![](%s)" % tmpfilename, file_content, count=1)
         index += 1
 
     fp, tmpfilename = tempfile.mkstemp()
@@ -85,13 +86,15 @@ def main(args=None):
     cmdline = '%s -S %s --css="%s" -s %s -o "%s.html"' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
                tmpfilename, os.path.normpath(args.markdown_file.name))
-    print '$ %s' % cmdline
-    os.popen(cmdline)
-    cmdline = '%s -S %s --reference-docx "%s" -s %s -o "%s.docx"' % \
+    logging.info('$ %s' % chs(cmdline))
+    result = os.popen(cmdline)
+    logging.info(result.readlines())
+    cmdline = '%s -S %s --reference-docx="%s" -s %s -o "%s.docx"' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_reference_docx,
                tmpfilename, os.path.normpath(args.markdown_file.name))
-    print '$ %s' % cmdline
-    os.popen(cmdline)
+    logging.info('$ %s' % chs(cmdline))
+    result = os.popen(cmdline)
+    logging.info(result.readlines())
     if delete_temp_file:
         os.remove(tmpfilename)
 
