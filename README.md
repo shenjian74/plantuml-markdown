@@ -2,7 +2,9 @@
 
 Parse plantuml tags in markdown file, convert markdown to html/docx
 
-tags: plantuml markdown
+## Preview
+
+![](http://www.plantuml.com:80/plantuml/png/JSox3G8n303GtbEup5NqIOaeaBWA6C2A7HAHE2XdFhSzY0O6U6yn6WP-fvaq2kDCuyhzgG5AGhVNMEyiU9uF4reMHRVACW6YttPzo32qZgNHHGA8SadWZqRAD7uLkfEqMnyqLaobVdo0VvwjrGtt-FeMRm00)
 
 ## Example
 
