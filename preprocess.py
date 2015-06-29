@@ -62,7 +62,10 @@ def chs(string):
         raise ValueError("Unknown type.")
 
     try:
-        ret_string = unicode_string.encode(sys.stdout.encoding)
+        if sys.stdout.encoding:
+            ret_string = unicode_string.encode(sys.stdout.encoding)
+        else:
+            ret_string = unicode_string.encode(default_encoding)
     except UnicodeEncodeError:
         ret_string = unicode_string.encode(default_encoding)
     return ret_string
