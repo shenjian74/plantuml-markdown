@@ -52,6 +52,10 @@ line2
 
 3. Finally, "python preprocess.py --plantuml-jar /pathto/plantuml.jar --reference-docx /pathto/reference.docx markdown_file"
 
+## Document
+
+* [PlantUML Language Reference Guide](http://www.plantuml.com/PlantUML_Language_Reference_Guide.pdf)
+
 
 
 
