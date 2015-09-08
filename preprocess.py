@@ -3,7 +3,7 @@
 plantuml_jar_file = 'plantuml.jar'
 plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
-pandoc_html_parameters = '-S --from=markdown+pipe_tables+yaml_metadata_block --table-of-contents'
+pandoc_html_parameters = '-S --from=markdown_github+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
 pandoc_reference_docx = ''
 delete_temp_file = True
@@ -109,7 +109,10 @@ def main(args=None):
             break
         logging.debug(script.group('content'))
         tmpfilename = convert2png(script.group('content'))
-        file_content = re.sub(pattern, lambda s: "![](%s)" % tmpfilename, file_content, count=1)
+        if os.path.exists(tmpfilename):
+			file_content = re.sub(pattern, lambda s: "![](%s)" % tmpfilename, file_content, count=1)
+        else:
+            file_content = re.sub(pattern, "", file_content, count=1)
         index += 1
 
     fp, tmpfilename = tempfile.mkstemp()
