@@ -3,7 +3,7 @@
 plantuml_jar_file = 'plantuml.jar'
 plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
-pandoc_html_parameters = '-S --from=markdown_github+yaml_metadata_block --table-of-contents'
+pandoc_html_parameters = '-S --from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
 pandoc_reference_docx = ''
 delete_temp_file = True
@@ -16,7 +16,8 @@ import logging
 import tempfile
 import argparse
 
-pattern = re.compile("\n```uml(?P<content>.*?)\n```", re.DOTALL)
+pattern_uml = re.compile("\n```uml(?P<content>.*?)\n```", re.DOTALL)
+pattern_include = re.compile("!INCLUDE \"(?P<include_file>.*?)\"", re.DOTALL)
 os_tempdir = tempfile.gettempdir()
 logging.basicConfig(format='[%(filename)s:%(lineno)d] : %(asctime)s : %(levelname)s : %(message)s',
                     level=logging.INFO)
@@ -34,14 +35,15 @@ def print_popen_result(result):
 def convert2png(content):
     global plantuml_jar_file
 
-    fp, tmpfilename = tempfile.mkstemp()
-    os.write(fp, content)
-    os.close(fp)
-    cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s 2>&1' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename)
+    fp1, tmpfilename1 = tempfile.mkstemp()
+    os.write(fp1, content)
+    os.close(fp1)
+	
+    cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s 2>&1' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename1)
     logging.info('$ %s' % cmdline)
     print_popen_result(os.popen(cmdline))
     if delete_temp_file:
-        os.remove(tmpfilename)
+        os.remove(tmpfilename1)
     return tmpfilename + ".png"
 
 
@@ -102,22 +104,34 @@ def main(args=None):
         args.plantuml_jar.close()
         plantuml_jar_file = args.plantuml_jar.name
 
-    index = 1
     while True:
-        script = re.search(pattern, file_content)
+        script = re.search(pattern_include, file_content)
+        if script is None:
+            break
+        filename1 = script.group('include_file')
+        logging.debug(filename1)
+        if os.path.exists(filename1):
+		    with open(filename1, "rt") as finc:
+			    file_content = re.sub(pattern_include, finc.read(), file_content, count=1)
+        else:
+            file_content = re.sub(pattern_include, "[File:\"%s\" not found]" % filename, file_content, count=1)
+
+    while True:
+        script = re.search(pattern_uml, file_content)
         if script is None:
             break
         logging.debug(script.group('content'))
-        tmpfilename = convert2png(script.group('content'))
-        if os.path.exists(tmpfilename):
-			file_content = re.sub(pattern, lambda s: "![](%s)" % tmpfilename, file_content, count=1)
+        filename2 = convert2png(script.group('content'))
+        if os.path.exists(filename2):
+			file_content = re.sub(pattern_uml, lambda s: "![](%s)" % filename2, file_content, count=1)
         else:
-            file_content = re.sub(pattern, "", file_content, count=1)
-        index += 1
+            file_content = re.sub(pattern_uml, "", file_content, count=1)
 
-    fp, tmpfilename = tempfile.mkstemp()
-    os.write(fp, file_content)
-    os.close(fp)
+    global fp2
+    global tmpfilename
+    fp2, tmpfilename = tempfile.mkstemp(suffix='.md', text=True)
+    os.write(fp2, file_content)
+    os.close(fp2)
 
     cmdline = '%s -S %s --css="%s" -s %s -o "%s" 2>&1' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
