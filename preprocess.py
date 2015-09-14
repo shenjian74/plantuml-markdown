@@ -44,7 +44,7 @@ def convert2png(content):
     print_popen_result(os.popen(cmdline))
     if delete_temp_file:
         os.remove(tmpfilename1)
-    return tmpfilename + ".png"
+    return tmpfilename1 + ".png"
 
 
 def chs(string):
