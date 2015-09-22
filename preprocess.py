@@ -1,6 +1,6 @@
 # coding=UTF-8
 
-plantuml_jar_file = 'plantuml.jar'
+plantuml_jar_file = 'plantuml/plantuml.jar'
 plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
 pandoc_html_parameters = '-S --from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
