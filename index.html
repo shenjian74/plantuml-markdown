@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Plantuml-markdown by shenjian74</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Plantuml-markdown</h1>
+      <h2 class="project-tagline">parse plantuml tags in markdown</h2>
+      <a href="https://github.com/shenjian74/plantuml-markdown" class="btn">View on GitHub</a>
+      <a href="https://github.com/shenjian74/plantuml-markdown/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/shenjian74/plantuml-markdown/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+<h1 id="plantuml-markdown">plantuml-markdown</h1>
+<p>Parse plantuml tags in markdown file, convert markdown to html/docx</p>
+<p>tags: plantuml markdown</p>
+<h2 id="example">Example</h2>
+<p>Markdown</p>
+<pre><code>### Title3
+#### Title4
+
+line1
+
+line2
+
+```uml
+@startuml
+Alice -&gt; Bob: Authentication Request
+Bob --&gt; Alice: Authentication Response
+
+Alice -&gt; Bob: Another authentication Request
+Alice &lt;-- Bob: another authentication Response
+@enduml
+```</code></pre>
+<p>Show as:</p>
+<h3 id="title3">Title3</h3>
+<h4 id="title4">Title4</h4>
+<p>line1</p>
+<p>line2</p>
+<div class="figure">
+<img src="http://www.plantuml.com:80/plantuml/png/Syp9J4vLqBLJSCfFib9mB2t9ICqhoKnEBCdCprC8IYqiJIqkuGBAAUW2rJY256DHLLoGdrUSoiNbY6fONZvGNP528dP38OfjT7KXgXDngOOO3W00" />
+
+</div>
+<h2 id="install">Install</h2>
+<ol style="list-style-type: decimal">
+<li>Download and Install <a href="http://www.plantuml.com/">plantuml</a></li>
+<li><p>Config some parameters in “preprocess.py”</p>
+<ul>
+<li>plantuml_jar_file – Where is <a href="http://sourceforge.net/projects/plantuml/files/plantuml.jar/download">plantuml.jar</a></li>
+<li>plantuml_jar_parameters</li>
+<li>pandoc_exe_file – Where is the pandoc execute file</li>
+<li>pandoc_html_parameters – pandoc’s parameters for html</li>
+<li>pandoc_css_file – CSS file for html, see “–css” in <a href="http://pandoc.org/README.html">pandoc</a></li>
+<li>pandoc_reference_docx – local docx template file, see “–reference-docx” in <a href="http://pandoc.org/README.html">pandoc</a></li>
+</ul></li>
+<li><p>Finally, “python preprocess.py –plantuml-jar /pathto/plantuml.jar –reference-docx /pathto/reference.docx markdown_file”</p></li>
+</ol>
+  </body>
+</html>
+
