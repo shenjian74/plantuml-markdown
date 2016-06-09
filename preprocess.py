@@ -1,12 +1,12 @@
 # coding=UTF-8
 
-plantuml_jar_file = 'plantuml.jar'
+plantuml_jar_file = 'plantuml/plantuml.jar'
 plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
 pandoc_html_parameters = '-S --from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
 pandoc_reference_docx = ''
-delete_temp_file = False
+delete_temp_file = True
 
 import locale
 import sys
@@ -15,8 +15,6 @@ import re
 import logging
 import tempfile
 import argparse
-import urlparse
-import urllib
 
 pattern_uml = re.compile("\n```uml(?P<content>.*?)\n```", re.DOTALL)
 pattern_include = re.compile("!INCLUDE \"(?P<include_file>.*?)\"", re.DOTALL)
@@ -25,10 +23,6 @@ logging.basicConfig(format='[%(filename)s:%(lineno)d] : %(asctime)s : %(levelnam
                     level=logging.INFO)
 
 
-def path2url(path):
-    return urlparse.urljoin('file:', urllib.pathname2url(path))
-	  
-	  
 def print_popen_result(result):
     no_error = True
     for line in result:
@@ -92,19 +86,18 @@ def change_file_ext(origin, new_ext):
     return dest_filename
 
 
-def mk_include_file(file_content):
-    global script, filename1, finc
+def include_file(file_content):
     while True:
         script = re.search(pattern_include, file_content)
         if script is None:
             break
-        filename = script.group('include_file')
-        logging.debug(filename)
-        if os.path.exists(filename):
-            with open(filename, "rt") as finc:
+        filename1 = script.group('include_file')
+        logging.debug(filename1)
+        if os.path.exists(filename1):
+            with open(filename1, "rt") as finc:
                 file_content = re.sub(pattern_include, finc.read(), file_content, count=1)
         else:
-            file_content = re.sub(pattern_include, "[File:\"%s\" not found]" % filename, file_content, count=1)
+            file_content = re.sub(pattern_include, "[File:\"%s\" not found]" % filename1, file_content, count=1)
     return file_content
 
 
@@ -120,7 +113,7 @@ def main(args=None):
     with args.markdown_file:
         file_content_html = args.markdown_file.read()
         file_content_docx = file_content_html
-	
+
     if args.reference_docx:
         args.reference_docx.close()
         pandoc_reference_docx = args.reference_docx.name
@@ -128,8 +121,25 @@ def main(args=None):
         args.plantuml_jar.close()
         plantuml_jar_file = args.plantuml_jar.name
 
-    file_content_html = mk_include_file(file_content_html)
-    file_content_docx = mk_include_file(file_content_docx)
+    file_content_html = include_file(file_content_html)
+    file_content_docx = include_file(file_content_docx)
+
+    while True:
+        script = re.search(pattern_uml, file_content_html)
+        if script is None:
+            break
+        logging.debug(script.group('content'))
+        filename2 = convert2png(script.group('content'))
+        if os.path.exists(filename2):
+            image_filename = ""
+            for i in xrange(len(filename2)):
+                if filename2[i] == '\\':
+                    image_filename += '/'
+                else:
+                    image_filename += filename2[i]
+            file_content_html = re.sub(pattern_uml, lambda s: "![](file:///%s)" % image_filename, file_content_html, count=1)
+        else:
+            file_content_html = re.sub(pattern_uml, "", file_content_html, count=1)
 
     while True:
         script = re.search(pattern_uml, file_content_docx)
@@ -142,35 +152,22 @@ def main(args=None):
         else:
             file_content_docx = re.sub(pattern_uml, "", file_content_docx, count=1)
 
-    while True:
-        script = re.search(pattern_uml, file_content_html)
-        if script is None:
-            break
-        logging.debug(script.group('content'))
-        filename2 = convert2png(script.group('content'))
-        if os.path.exists(filename2):
-            file_content_html = re.sub(pattern_uml, lambda s: "![](%s)" % path2url(filename2), file_content_html, count=1)
-        else:
-            file_content_html = re.sub(pattern_uml, "", file_content_html, count=1)
+    global fp2
+    global tmpfilename_docx, tmpfilename_html
 
-    global fpmd
-    global tmpfilename_html, tmpfilename_docx
+    fp2, tmpfilename_docx = tempfile.mkstemp(suffix='.md', text=True)
+    os.write(fp2, file_content_docx)
+    os.close(fp2)
 
-    # convert md to html
-    fpmd, tmpfilename_html = tempfile.mkstemp(suffix='.md', text=True)
-    os.write(fpmd, file_content_html)
-    os.close(fpmd)
+    fp2, tmpfilename_html = tempfile.mkstemp(suffix='.md', text=True)
+    os.write(fp2, file_content_html)
+    os.close(fp2)
 
     cmdline = '%s -S %s --css="%s" -s %s -o "%s" 2>&1' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
                tmpfilename_html, os.path.normpath(change_file_ext(args.markdown_file.name, 'html')))
     logging.info('$ %s' % chs(cmdline))
     print_popen_result(os.popen(cmdline))
-
-    # convert md to docx
-    fpmd, tmpfilename_docx = tempfile.mkstemp(suffix='.md', text=True)
-    os.write(fpmd, file_content_docx)
-    os.close(fpmd)
 
     cmdline = '%s -S %s' % (pandoc_exe_file, pandoc_html_parameters)
     if len(pandoc_reference_docx):
