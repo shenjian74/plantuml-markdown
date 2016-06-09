@@ -2,7 +2,7 @@
 
 Parse plantuml tags in markdown file, convert markdown to html/docx
 
-Use this block to include UML image.
+Use this block in markdown to include UML image.
 	```uml
 	......
 	```
