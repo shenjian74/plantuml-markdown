@@ -5,7 +5,7 @@ plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
 pandoc_html_parameters = '-S --from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
-pandoc_reference_docx = ''
+pandoc_reference_docx = 'reference/reference.docx'
 delete_temp_file = True
 
 import locale
@@ -102,7 +102,7 @@ def include_file(file_content):
 
 
 def main(args=None):
-    global plantuml_jar_file
+    global plantuml_jar_file, pandoc_reference_docx
 
     parser = argparse.ArgumentParser(description='Preprocessing plantuml in markdown file.')
     parser.add_argument("markdown_file", metavar='file', type=file)

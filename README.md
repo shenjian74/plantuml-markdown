@@ -60,7 +60,7 @@ line2
 	* pandoc_css_file -- CSS file for html, see "--css" in [pandoc](http://pandoc.org/README.html)
 	* pandoc_reference_docx -- local docx template file, see "--reference-docx" in [pandoc](http://pandoc.org/README.html)
 
-3. Finally, "python preprocess.py --plantuml-jar /pathto/plantuml.jar --reference-docx /pathto/reference.docx markdown_file"
+3. Finally, "python preprocess.py [--plantuml-jar /pathto/plantuml.jar] [--reference-docx /pathto/reference.docx] markdown_file"
 
 ## Document
 
