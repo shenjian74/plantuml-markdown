@@ -6,7 +6,7 @@ plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
 pandoc_html_parameters = '--from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
-pandoc_reference_docx = 'reference/reference.docx'
+pandoc_reference_docx = 'reference/zte_reference.docx'
 delete_temp_file = True
 
 import locale
