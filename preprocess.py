@@ -4,7 +4,7 @@ from __future__ import print_function
 plantuml_jar_file = 'plantuml/plantuml.jar'
 plantuml_jar_parameters = ''
 pandoc_exe_file = 'pandoc'
-pandoc_html_parameters = '-S --from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
+pandoc_html_parameters = '--from=markdown_github+table_captions+yaml_metadata_block --table-of-contents'
 pandoc_css_file = 'http://shenjian74.github.io/plantuml-markdown/stylesheets/github.css'
 pandoc_reference_docx = 'reference/reference.docx'
 delete_temp_file = True
@@ -81,7 +81,7 @@ def main(args=None):
 
     parser = argparse.ArgumentParser(description='Preprocessing plantuml in markdown file.')
     parser.add_argument("markdown_file", metavar='filename', type=argparse.FileType('r'))
-    parser.add_argument("--reference-docx", type=argparse.FileType('r'), help="the reference docx file used by pandoc", required=False)
+    parser.add_argument("--reference-doc", type=argparse.FileType('r'), help="the reference docx file used by pandoc", required=False)
     parser.add_argument("--plantuml-jar", type=argparse.FileType('r'), help="the plantuml jar file", required=False)
     args = parser.parse_args()
 
@@ -89,9 +89,9 @@ def main(args=None):
         file_content_html = args.markdown_file.read()
         file_content_docx = file_content_html
 
-    if args.reference_docx:
-        args.reference_docx.close()
-        pandoc_reference_docx = args.reference_docx.name
+    if args.reference_doc:
+        args.reference_doc.close()
+        pandoc_reference_docx = args.reference_doc.name
     if args.plantuml_jar:
         args.plantuml_jar.close()
         plantuml_jar_file = args.plantuml_jar.name
@@ -138,15 +138,15 @@ def main(args=None):
     os.write(fp2, file_content_html.encode())
     os.close(fp2)
 
-    cmdline = '%s -S %s --css="%s" -s %s -o "%s" 2>&1' % \
+    cmdline = '%s %s --css="%s" -s %s -o "%s" 2>&1' % \
               (pandoc_exe_file, pandoc_html_parameters, pandoc_css_file,
                tmpfilename_html, os.path.normpath(change_file_ext(args.markdown_file.name, 'html')))
     logging.info('$ %s' % cmdline)
     print_popen_result(os.popen(cmdline))
 
-    cmdline = '%s -S %s' % (pandoc_exe_file, pandoc_html_parameters)
+    cmdline = '%s %s' % (pandoc_exe_file, pandoc_html_parameters)
     if len(pandoc_reference_docx):
-        cmdline += ' --reference-docx="%s"' % pandoc_reference_docx
+        cmdline += ' --reference-doc="%s"' % pandoc_reference_docx
     cmdline += ' -s %s -o "%s" 2>&1' % (tmpfilename_docx,
             os.path.normpath(change_file_ext(args.markdown_file.name, 'docx')))
     logging.info('$ %s' % cmdline)

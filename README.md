@@ -1,4 +1,6 @@
-# plantuml-markdown 
+---
+title:  'plantuml-markdown README'
+...
 
 Parse plantuml tags in markdown file, convert markdown to html/docx
 
