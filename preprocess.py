@@ -17,7 +17,9 @@ import logging
 import tempfile
 import argparse
 
-pattern_uml = re.compile("\n```uml(?P<content>.*?)\n```", re.DOTALL)
+pattern_uml1 = re.compile("\n```uml(?P<content>.*?)\n```", re.DOTALL)
+pattern_uml2 = re.compile("\n```puml(?P<content>.*?)\n```", re.DOTALL)
+pattern_uml3 = re.compile("\n```plantuml(?P<content>.*?)\n```", re.DOTALL)
 pattern_include = re.compile("!INCLUDE \"(?P<include_file>.*?)\"", re.DOTALL)
 os_tempdir = tempfile.gettempdir()
 logging.basicConfig(format='[%(filename)s:%(lineno)d] : %(asctime)s : %(levelname)s : %(message)s',
@@ -37,7 +39,7 @@ def convert2png(content):
     global plantuml_jar_file
 
     fp1, tmpfilename1 = tempfile.mkstemp()
-    os.write(fp1, content)
+    os.write(fp1, content.encode('utf-8'))
     os.close(fp1)
 	
     cmdline = 'java -jar %s -tpng -charset UTF-8 %s %s 2>&1' % (plantuml_jar_file, plantuml_jar_parameters, tmpfilename1)
@@ -80,7 +82,7 @@ def main(args=None):
     global plantuml_jar_file, pandoc_reference_docx
 
     parser = argparse.ArgumentParser(description='Preprocessing plantuml in markdown file.')
-    parser.add_argument("markdown_file", metavar='filename', type=argparse.FileType('r'))
+    parser.add_argument("markdown_file", metavar='filename', type=argparse.FileType('r', encoding='utf-8'))
     parser.add_argument("--reference-doc", type=argparse.FileType('r'), help="the reference docx file used by pandoc", required=False)
     parser.add_argument("--plantuml-jar", type=argparse.FileType('r'), help="the plantuml jar file", required=False)
     args = parser.parse_args()
@@ -99,15 +101,26 @@ def main(args=None):
     file_content_html = include_file(file_content_html)
     file_content_docx = include_file(file_content_docx)
 
+    pattern_uml = None
     while True:
-        script = re.search(pattern_uml, file_content_html)
+        script = re.search(pattern_uml1, file_content_html)
         if script is None:
-            break
+            script = re.search(pattern_uml2, file_content_html)
+            if script is None:
+                script = re.search(pattern_uml3, file_content_html)
+                if script is None:
+                    break
+                else:
+                    pattern_uml = pattern_uml3
+            else:
+                pattern_uml = pattern_uml2
+        else:
+            pattern_uml = pattern_uml1 
         logging.debug(script.group('content'))
         filename2 = convert2png(script.group('content'))
         if os.path.exists(filename2):
             image_filename = ""
-            for i in xrange(len(filename2)):
+            for i in range(len(filename2)):
                 if filename2[i] == '\\':
                     image_filename += '/'
                 else:
@@ -116,16 +129,17 @@ def main(args=None):
         else:
             file_content_html = re.sub(pattern_uml, "", file_content_html, count=1)
 
-    while True:
-        script = re.search(pattern_uml, file_content_docx)
-        if script is None:
-            break
-        logging.debug(script.group('content'))
-        filename2 = convert2png(script.group('content'))
-        if os.path.exists(filename2):
-            file_content_docx = re.sub(pattern_uml, lambda s: "![](%s)" % filename2, file_content_docx, count=1)
-        else:
-            file_content_docx = re.sub(pattern_uml, "", file_content_docx, count=1)
+    if pattern_uml is not None:
+        while True:
+            script = re.search(pattern_uml, file_content_docx)
+            if script is None:
+                break
+            logging.debug(script.group('content'))
+            filename2 = convert2png(script.group('content'))
+            if os.path.exists(filename2):
+                file_content_docx = re.sub(pattern_uml, lambda s: "![](%s)" % filename2, file_content_docx, count=1)
+            else:
+                file_content_docx = re.sub(pattern_uml, "", file_content_docx, count=1)
 
     global fp2
     global tmpfilename_docx, tmpfilename_html
